@@ -23,4 +23,8 @@ public class HeartRateMonitor implements AntDevice {
 		return "Heart Rate Monitor";
 	}
 
+	@Override
+	public DeviceType getAntDeviceType() {
+		return DEVICE_TYPE;
+	}
 }

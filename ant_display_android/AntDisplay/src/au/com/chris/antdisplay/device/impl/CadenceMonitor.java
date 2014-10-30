@@ -21,5 +21,12 @@ public class CadenceMonitor implements AntDevice {
 	@Override
 	public String getDeviceName() {
 		return "Cadence Monitor";
+	}
+
+	@Override
+	public DeviceType getAntDeviceType() {
+		return DEVICE_TYPE;
 	}	
+	
+	
 }

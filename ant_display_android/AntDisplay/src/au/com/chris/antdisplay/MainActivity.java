@@ -1,13 +1,20 @@
 package au.com.chris.antdisplay;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+
+import com.dsi.ant.plugins.antplus.pcc.defines.DeviceType;
+import com.dsi.ant.plugins.antplus.pcc.defines.RequestAccessResult;
+import com.dsi.ant.plugins.antplus.pccbase.MultiDeviceSearch;
+import com.dsi.ant.plugins.antplus.pccbase.MultiDeviceSearch.MultiDeviceSearchResult;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,7 +41,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	private ArrayList<AntDevice> devicesList = new ArrayList<AntDevice>();
 	private AlertDialog selectDeviceAlertDialog = null;
 	private SelectDevicesAdapter mSelectDevicesAdapter;
-	private List<AntDevice> selectedDevices = new ArrayList<AntDevice>();
+	MultiDeviceSearch mSearch;
 	
 	GradientDrawable gd = new GradientDrawable();
     
@@ -78,6 +85,13 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		return super.onOptionsItemSelected(item);
 	}
 
+	private void startMultiDeviceSearch() {
+		EnumSet<DeviceType> searchables = mSelectDevicesAdapter.getCheckedItems();
+		
+		Log.i("MainActivity", "All good at this point");
+		mSearch = new MultiDeviceSearch(this, searchables, mCallback, null);
+	}
+	
 	private boolean showSelectDevicesDialog() {
 		AlertDialog.Builder selectDevicesDialog = new AlertDialog.Builder(
 				MainActivity.this);
@@ -91,8 +105,9 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		selectDevicesDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
+				// Find devices that have been selected
 				Log.i("OK", "CLICKED");
+				startMultiDeviceSearch();
 			}
 		});
 		
@@ -224,6 +239,17 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			   
 		    notifyDataSetChanged();
 		}
+		
+		public EnumSet<DeviceType> getCheckedItems() {
+			EnumSet<DeviceType> selectedDevices = EnumSet.noneOf(DeviceType.class);
+			
+			for(Integer idx : checkedItems.keySet()) {
+				if(checkedItems.get(idx).booleanValue()) {
+					selectedDevices.add(deviceList.get(idx).getAntDeviceType());
+				}
+			}
+			return selectedDevices;
+		}
 	}
 
 	private static class ViewHolder {
@@ -239,4 +265,24 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			mSelectDevicesAdapter.toggle(position);
 		}
 	}
+	
+	private MultiDeviceSearch.SearchCallbacks mCallback = new MultiDeviceSearch.SearchCallbacks()
+    {
+		/**
+         * Called when a device is found. Display found devices in connected and
+         * found lists
+         */
+        public void onDeviceFound(final MultiDeviceSearchResult deviceFound)
+        {
+        	Log.i("MULTIDEVICESEARCH CALLBACK", "Device Found");
+        }
+        
+        /**
+         * The search has been stopped unexpectedly
+         */
+        public void onSearchStopped(RequestAccessResult reason)
+        {
+            finish();
+        }
+    };
 }
